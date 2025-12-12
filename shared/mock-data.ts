@@ -1,15 +1,79 @@
-import type { User, Chat, ChatMessage } from './types';
-
+import type { User, ResourceItem } from './types';
 export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'User A' },
-  { id: 'u2', name: 'User B' }
+  { id: 'u1', name: 'Alice', email: 'alice@example.com', password: 'password123' },
+  { id: 'u2', name: 'Bob', email: 'bob@example.com', password: 'password123' }
 ];
-
-export const MOCK_CHATS: Chat[] = [
-  { id: 'c1', title: 'General' },
+export const MOCK_RESOURCES: ResourceItem[] = [
+  {
+    id: 'r1',
+    title: 'React Official Docs',
+    description: 'The official documentation for React, the library for web and native user interfaces.',
+    url: 'https://react.dev/',
+    category: 'Development',
+    tags: ['react', 'javascript', 'frontend', 'docs'],
+    submittedBy: 'u1',
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
+    upvotes: 128,
+    downvotes: 5,
+  },
+  {
+    id: 'r2',
+    title: 'Tailwind CSS',
+    description: 'A utility-first CSS framework for rapidly building custom user interfaces.',
+    url: 'https://tailwindcss.com/',
+    category: 'Development',
+    tags: ['css', 'frontend', 'framework', 'utility-first'],
+    submittedBy: 'u1',
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 5,
+    upvotes: 256,
+    downvotes: 3,
+  },
+  {
+    id: 'r3',
+    title: 'Figma',
+    description: 'The collaborative interface design tool. Build, test, and ship better products from start to finish.',
+    url: 'https://www.figma.com/',
+    category: 'Design',
+    tags: ['ui', 'ux', 'design', 'collaboration'],
+    submittedBy: 'u2',
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 1,
+    upvotes: 192,
+    downvotes: 1,
+  },
+  {
+    id: 'r4',
+    title: 'Notion',
+    description: 'The all-in-one workspace for your notes, tasks, wikis, and databases.',
+    url: 'https://www.notion.so/',
+    category: 'Productivity',
+    tags: ['notes', 'tasks', 'organization', 'workspace'],
+    submittedBy: 'u2',
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 10,
+    upvotes: 312,
+    downvotes: 10,
+  },
+  {
+    id: 'r5',
+    title: 'Cloudflare Workers',
+    description: 'Deploy serverless code instantly across the globe to give it exceptional performance, reliability, and scale.',
+    url: 'https://workers.cloudflare.com/',
+    category: 'Development',
+    tags: ['serverless', 'cloudflare', 'backend', 'edge'],
+    submittedBy: 'u1',
+    createdAt: Date.now() - 1000 * 60 * 60 * 12,
+    upvotes: 99,
+    downvotes: 2,
+  },
+  {
+    id: 'r6',
+    title: 'HubSpot',
+    description: 'A full platform of marketing, sales, customer service, and CRM software — plus the methodology, resources, and support to help businesses grow better.',
+    url: 'https://www.hubspot.com/',
+    category: 'Marketing',
+    tags: ['crm', 'sales', 'marketing-automation'],
+    submittedBy: 'u2',
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 3,
+    upvotes: 78,
+    downvotes: 4,
+  },
 ];
-
-export const MOCK_CHAT_MESSAGES: ChatMessage[] = [
-  { id: 'm1', chatId: 'c1', userId: 'u1', text: 'Hello', ts: Date.now() },
-];
-  

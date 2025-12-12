@@ -1,8 +1,8 @@
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/lib/auth-context';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { LogOut, LayoutDashboard, Search } from 'lucide-react';
+import { LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,12 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from '@/components/ui/input';
-import React from 'react';
 export function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -25,39 +22,15 @@ export function Navbar() {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
-  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const query = formData.get('q') as string;
-    const newParams = new URLSearchParams(searchParams);
-    if (query) {
-      newParams.set('q', query);
-    } else {
-      newParams.delete('q');
-    }
-    navigate(`/?${newParams.toString()}`);
-  };
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 text-xl font-bold">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-orange-500" />
               <span className="hidden sm:inline-block">NexusHub</span>
             </Link>
-          </div>
-          <div className="flex-1 flex justify-center px-4 lg:px-8">
-            <form onSubmit={handleSearch} className="w-full max-w-md relative">
-              <Input
-                type="search"
-                name="q"
-                defaultValue={searchParams.get('q') || ''}
-                placeholder="Search resources..."
-                className="pl-10"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            </form>
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle className="relative" />
@@ -90,7 +63,7 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Button variant="ghost" asChild>
                   <Link to="/login">Sign In</Link>
                 </Button>

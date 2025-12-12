@@ -1,7 +1,16 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { api } from './api-client';
 import type { User, AuthResponse } from '@shared/types';
-import { AuthContext } from '@/hooks/useAuth';
+type AuthContextType = {
+  user: Omit<User, 'password'> | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (credentials: Pick<User, 'email' | 'password'>) => Promise<void>;
+  register: (userData: Pick<User, 'name' | 'email' | 'password'>) => Promise<void>;
+  logout: () => void;
+};
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Omit<User, 'password'> | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('nexus-token'));
@@ -11,14 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedUser = localStorage.getItem('nexus-user');
     if (storedToken && storedUser) {
       setToken(storedToken);
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Failed to parse user from localStorage", e);
-        // Clear corrupted data
-        localStorage.removeItem('nexus-user');
-        localStorage.removeItem('nexus-token');
-      }
+      setUser(JSON.parse(storedUser));
     }
     setIsLoading(false);
   }, []);
@@ -63,4 +65,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
