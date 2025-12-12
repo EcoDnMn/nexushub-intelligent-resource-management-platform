@@ -39,8 +39,13 @@ export function LoginPage() {
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <Toaster richColors />
+      <div className="flex justify-center mb-8">
+        <Link to="/" className="group" aria-label="Back to homepage">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-orange-500 transition-all duration-300 group-hover:scale-110 group-hover:shadow-glow" />
+        </Link>
+      </div>
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>

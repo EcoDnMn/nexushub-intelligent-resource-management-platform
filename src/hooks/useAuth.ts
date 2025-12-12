@@ -1,7 +1,16 @@
-import { useContext } from 'react';
-import { AuthContext } from '@/lib/auth-context';
-// This hook is now in its own file to satisfy the react-refresh/only-export-components lint rule.
-// It provides a safe way to access the AuthContext.
+import { useContext, createContext } from 'react';
+import type { User } from '@shared/types';
+type AuthContextType = {
+  user: Omit<User, 'password'> | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (credentials: Pick<User, 'email' | 'password'>) => Promise<void>;
+  register: (userData: Pick<User, 'name' | 'email' | 'password'>) => Promise<void>;
+  logout: () => void;
+};
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// This hook provides a safe way to access the AuthContext.
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

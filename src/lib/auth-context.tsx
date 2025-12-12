@@ -1,17 +1,7 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { api } from './api-client';
 import type { User, AuthResponse } from '@shared/types';
-type AuthContextType = {
-  user: Omit<User, 'password'> | null;
-  token: string | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (credentials: Pick<User, 'email' | 'password'>) => Promise<void>;
-  register: (userData: Pick<User, 'name' | 'email' | 'password'>) => Promise<void>;
-  logout: () => void;
-};
-// The context is created here but the hook to use it is in a separate file.
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from '@/hooks/useAuth';
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Omit<User, 'password'> | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('nexus-token'));
@@ -21,7 +11,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedUser = localStorage.getItem('nexus-user');
     if (storedToken && storedUser) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+        // Clear corrupted data
+        localStorage.removeItem('nexus-user');
+        localStorage.removeItem('nexus-token');
+      }
     }
     setIsLoading(false);
   }, []);
