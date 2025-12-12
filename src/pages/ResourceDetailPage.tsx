@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { ResourceItem } from '@shared/types';
 import { Navbar } from '@/components/layout/Navbar';
@@ -10,6 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, ArrowUpRight, ThumbsUp, ThumbsDown, Code, Palette, Rocket, Megaphone } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from '@/lib/auth-context';
+import { Toaster, toast } from 'sonner';
+import { ResourceCard } from '@/components/ResourceCard';
 const categoryIcons = {
   Development: <Code className="h-5 w-5 text-blue-500" />,
   Design: <Palette className="h-5 w-5 text-purple-500" />,
@@ -52,6 +55,8 @@ function ResourceDetailSkeleton() {
 export function ResourceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const { data: resource, isLoading, error } = useQuery<ResourceItem>({
     queryKey: ['resource', id],
     queryFn: () => api(`/api/resources/${id}`),
@@ -59,12 +64,36 @@ export function ResourceDetailPage() {
   });
   const { data: relatedResources } = useQuery<{ items: ResourceItem[] }>({
     queryKey: ['related-resources', resource?.category, id],
-    queryFn: () => api(`/api/resources?category=${resource?.category}&limit=4`),
+    queryFn: () => api(`/api/resources?category=${resource?.category}&limit=5`), // Fetch 5 to have 4 if one is the current
     enabled: !!resource,
   });
+  const voteMutation = useMutation({
+    mutationFn: ({ resourceId, action }: { resourceId: string, action: 'upvote' | 'downvote' }) =>
+      api(`/api/resources/${resourceId}/vote`, {
+        method: 'POST',
+        body: JSON.stringify({ action }),
+      }),
+    onSuccess: () => {
+      toast.success('Vote counted!');
+      queryClient.invalidateQueries({ queryKey: ['resource', id] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+    },
+    onError: (err) => {
+      toast.error('Failed to vote', { description: err.message });
+    },
+  });
+  const handleVote = (action: 'upvote' | 'downvote') => {
+    if (!id) return;
+    if (isAuthenticated) {
+      voteMutation.mutate({ resourceId: id, action });
+    } else {
+      toast.info('Please log in to vote.');
+    }
+  };
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Toaster richColors />
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
@@ -92,15 +121,15 @@ export function ResourceDetailPage() {
                 <CardContent className="space-y-6">
                   <p className="text-lg text-muted-foreground">{resource.description}</p>
                   <div className="flex items-center gap-4">
-                    <Button asChild size="lg">
+                    <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
                       <a href={resource.url} target="_blank" rel="noopener noreferrer">
                         Visit Link <ArrowUpRight className="ml-2 h-4 w-4" />
                       </a>
                     </Button>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" disabled><ThumbsUp className="h-5 w-5" /></Button>
+                      <Button variant="outline" size="icon" onClick={() => handleVote('upvote')} disabled={!isAuthenticated || voteMutation.isPending}><ThumbsUp className="h-5 w-5" /></Button>
                       <span className="font-bold text-lg">{resource.upvotes - resource.downvotes}</span>
-                      <Button variant="outline" size="icon" disabled><ThumbsDown className="h-5 w-5" /></Button>
+                      <Button variant="outline" size="icon" onClick={() => handleVote('downvote')} disabled={!isAuthenticated || voteMutation.isPending}><ThumbsDown className="h-5 w-5" /></Button>
                     </div>
                   </div>
                 </CardContent>
@@ -122,14 +151,7 @@ export function ResourceDetailPage() {
                   <h3 className="text-2xl font-bold mb-6">Related Resources</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {relatedResources.items.filter(r => r.id !== id).map(related => (
-                      <Link to={`/resource/${related.id}`} key={related.id} className="block">
-                        <Card className="h-full hover:border-primary transition-colors">
-                          <CardHeader>
-                            <CardTitle className="text-lg">{related.title}</CardTitle>
-                            <CardDescription>{related.category}</CardDescription>
-                          </CardHeader>
-                        </Card>
-                      </Link>
+                      <ResourceCard key={related.id} resource={related} onVote={(resId, action) => voteMutation.mutate({resourceId: resId, action})} isVoting={voteMutation.isPending} />
                     ))}
                   </div>
                 </div>

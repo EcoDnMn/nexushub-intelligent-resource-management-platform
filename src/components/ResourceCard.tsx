@@ -5,9 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowUpRight, Code, Megaphone, Palette, Rocket, ThumbsDown, ThumbsUp } from 'lucide-react';
 import type { ResourceItem } from '@shared/types';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/lib/auth-context';
 import { cn } from '@/lib/utils';
-import { Skeleton } from "@/components/ui/skeleton";
 const categoryIcons: Record<ResourceItem['category'], React.ReactNode> = {
   Development: <Code className="h-5 w-5" />,
   Design: <Palette className="h-5 w-5" />,

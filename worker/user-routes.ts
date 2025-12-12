@@ -1,8 +1,11 @@
 import { Hono } from "hono";
+import type { Context } from "hono";
 import type { Env } from './core-utils';
 import { UserEntity, ResourceEntity } from "./entities";
-import { ok, bad, notFound, isStr } from './core-utils';
+import { ok, isStr } from './core-utils';
 import type { User, ResourceItem } from "@shared/types";
+const bad = (c: Context, error: string, status: number = 400) => c.json({ success: false, error }, status);
+const notFound = (c: Context, error = 'not found') => c.json({ success: false, error }, 404);
 async function getAuthenticatedUser(c: any): Promise<string | null> {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -60,15 +63,40 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const limit = c.req.query('limit');
     const submittedBy = c.req.query('submittedBy');
     const category = c.req.query('category');
-    const page = await ResourceEntity.list(c.env, cursor ?? null, limit ? Math.max(1, (Number(limit) | 0)) : undefined);
-    let filteredItems = page.items;
-    if (submittedBy) {
-      filteredItems = filteredItems.filter(r => r.submittedBy === submittedBy);
+    const q = c.req.query('q');
+    const sort = c.req.query('sort');
+    const page = await ResourceEntity.list(c.env, null, 1000); // Fetch all for filtering/sorting, not ideal for production
+    let items = page.items;
+    // Filtering
+    if (submittedBy) items = items.filter(r => r.submittedBy === submittedBy);
+    if (category) items = items.filter(r => r.category === category);
+    if (q) {
+      const lowerQ = q.toLowerCase();
+      items = items.filter(r => 
+        r.title.toLowerCase().includes(lowerQ) ||
+        r.description.toLowerCase().includes(lowerQ) ||
+        r.url.toLowerCase().includes(lowerQ) ||
+        r.tags.some(t => t.toLowerCase().includes(lowerQ))
+      );
     }
-    if (category) {
-      filteredItems = filteredItems.filter(r => r.category === category);
+    // Sorting
+    if (sort === 'hot') {
+      const now = Date.now();
+      // Simple hot sort: score based on votes and recency
+      items.sort((a, b) => {
+        const scoreA = (a.upvotes - a.downvotes) + (a.createdAt - now) / (1000 * 60 * 60 * 24 * 7); // decay over a week
+        const scoreB = (b.upvotes - b.downvotes) + (b.createdAt - now) / (1000 * 60 * 60 * 24 * 7);
+        return scoreB - scoreA;
+      });
+    } else { // Default to 'new'
+      items.sort((a, b) => b.createdAt - a.createdAt);
     }
-    return ok(c, { ...page, items: filteredItems });
+    // Pagination
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    const startIndex = cursor ? items.findIndex(item => item.id === cursor) + 1 : 0;
+    const paginatedItems = items.slice(startIndex, startIndex + limitNum);
+    const nextCursor = items.length > startIndex + limitNum ? items[startIndex + limitNum -1].id : null;
+    return ok(c, { items: paginatedItems, next: nextCursor });
   });
   app.get('/api/resources/:id', async (c) => {
     const id = c.req.param('id');
@@ -133,6 +161,26 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     }
     await ResourceEntity.delete(c.env, id);
     return ok(c, { deleted: true, id });
+  });
+  app.post('/api/resources/:id/vote', async (c) => {
+    const userId = await getAuthenticatedUser(c);
+    if (!userId) return bad(c, 'Unauthorized', 401);
+    const id = c.req.param('id');
+    const { action } = await c.req.json<{ action?: 'upvote' | 'downvote' }>();
+    if (action !== 'upvote' && action !== 'downvote') {
+      return bad(c, 'Invalid vote action.');
+    }
+    const resourceEntity = new ResourceEntity(c.env, id);
+    if (!await resourceEntity.exists()) {
+      return notFound(c, 'Resource not found');
+    }
+    const key = action === 'upvote' ? 'upvotes' : 'downvotes';
+    await resourceEntity.mutate(resource => ({
+      ...resource,
+      [key]: resource[key] + 1,
+    }));
+    const updatedResource = await resourceEntity.getState();
+    return ok(c, updatedResource);
   });
   // Ensure seeds are available on first load
   app.get('/api/init', async (c) => {
