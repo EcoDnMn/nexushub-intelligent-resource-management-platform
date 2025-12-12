@@ -1,6 +1,7 @@
 import { IndexedEntity, Index } from "./core-utils";
 import type { User, ResourceItem } from "@shared/types";
 import { MOCK_USERS, MOCK_RESOURCES } from "@shared/mock-data";
+import type { Env } from './core-utils';
 // USER ENTITY
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";

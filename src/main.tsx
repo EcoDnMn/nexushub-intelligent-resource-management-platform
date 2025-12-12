@@ -14,6 +14,8 @@ import '@/index.css'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { ResourceDetailPage } from '@/pages/ResourceDetailPage';
 import { AuthProvider } from '@/lib/auth-context';
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
@@ -30,6 +32,16 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/dashboard",
+    element: <DashboardPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/resource/:id",
+    element: <ResourceDetailPage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
