@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { api } from './api-client';
 import type { User, AuthResponse } from '@shared/types';
 type AuthContextType = {
@@ -10,7 +10,8 @@ type AuthContextType = {
   register: (userData: Pick<User, 'name' | 'email' | 'password'>) => Promise<void>;
   logout: () => void;
 };
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// The context is created here but the hook to use it is in a separate file.
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Omit<User, 'password'> | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('nexus-token'));
@@ -65,11 +66,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, ArrowUpRight, ThumbsUp, ThumbsDown, Code, Palette, Rocket, Megaphone } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/hooks/useAuth';
 import { Toaster, toast } from 'sonner';
 import { ResourceCard } from '@/components/ResourceCard';
 const categoryIcons = {

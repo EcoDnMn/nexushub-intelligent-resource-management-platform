@@ -4,9 +4,9 @@ import type { Env } from './core-utils';
 import { UserEntity, ResourceEntity } from "./entities";
 import { ok, isStr } from './core-utils';
 import type { User, ResourceItem } from "@shared/types";
-const bad = (c: Context, error: string, status: number = 400) => c.json({ success: false, error }, status);
-const notFound = (c: Context, error = 'not found') => c.json({ success: false, error }, 404);
-async function getAuthenticatedUser(c: any): Promise<string | null> {
+const bad = (c: Context<{ Bindings: Env }>, error: string, status: number = 400) => c.json({ success: false, error }, { status });
+const notFound = (c: Context<{ Bindings: Env }>, error = 'not found') => c.json({ success: false, error }, { status: 404 });
+async function getAuthenticatedUser(c: Context<{ Bindings: Env }>): Promise<string | null> {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
@@ -72,7 +72,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (category) items = items.filter(r => r.category === category);
     if (q) {
       const lowerQ = q.toLowerCase();
-      items = items.filter(r => 
+      items = items.filter(r =>
         r.title.toLowerCase().includes(lowerQ) ||
         r.description.toLowerCase().includes(lowerQ) ||
         r.url.toLowerCase().includes(lowerQ) ||
