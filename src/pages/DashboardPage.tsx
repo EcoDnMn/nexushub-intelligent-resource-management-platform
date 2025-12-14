@@ -52,7 +52,7 @@ function ResourceForm({ resource, onFinished }: { resource?: ResourceItem, onFin
     },
     onSuccess: () => {
       toast.success(`Resource ${resource ? 'updated' : 'created'} successfully!`);
-      queryClient.invalidateQueries({ queryKey: ['my-resources', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['my-resources', user?.id, 'full'] });
       onFinished();
     },
     onError: (error) => {
@@ -112,15 +112,15 @@ export function DashboardPage() {
     }
   }, [isAuthenticated, isAuthLoading, navigate]);
   const { data, isLoading: areResourcesLoading, error } = useQuery<{ items: ResourceItem[] }>({
-    queryKey: ['my-resources', user?.id],
-    queryFn: () => api(`/api/resources?submittedBy=${user?.id}`),
+    queryKey: ['my-resources', user?.id, 'full'],
+    queryFn: () => api(`/api/resources?submittedBy=${user?.id}&limit=1000`),
     enabled: !!user?.id,
   });
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api(`/api/resources/${id}`, { method: 'DELETE' }),
     onSuccess: (data: { id: string }) => {
       toast.success('Resource deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['my-resources', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['my-resources', user?.id, 'full'] });
     },
     onError: (error) => {
       toast.error('Failed to delete resource', { description: error.message });
