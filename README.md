@@ -1,6 +1,6 @@
 # NexusHub - Intelligent Resource Management Platform
 
-[![Deploy to Cloudflare]([cloudflarebutton])](https://workers.cloudflare.com)
+[![Deploy to Cloudflare]([![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/EcoDnMn/nexushub-intelligent-resource-management-platform))](https://workers.cloudflare.com)
 
 NexusHub is a sophisticated, full-stack resource aggregation platform designed to serve as a centralized station for sharing, discovering, and managing digital resources (links, documentation, tools, libraries). It transforms static directories into a dynamic, user-driven ecosystem.
 
@@ -121,7 +121,7 @@ app.post('/api/resources', async (c) => {
 
    This builds the frontend and deploys the Worker + assets to Cloudflare Pages.
 
-[![Deploy to Cloudflare]([cloudflarebutton])](https://workers.cloudflare.com)
+[![Deploy to Cloudflare]([![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/EcoDnMn/nexushub-intelligent-resource-management-platform))](https://workers.cloudflare.com)
 
 **Custom Domain**: Configure in Cloudflare Dashboard after deployment.
 
